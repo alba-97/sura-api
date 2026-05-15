@@ -1,20 +1,20 @@
 import { Router } from 'express';
-import { login } from '../controllers/authController';
+import { login } from '../controllers/auth.controller';
 import {
   getCards,
   getAccount,
   createCard,
   internalTransfer,
-} from '../controllers/cardsController';
+} from '../controllers/cards.controller';
 import {
   getMovements,
   getContacts,
   transfer,
-} from '../controllers/movementsController';
+} from '../controllers/movements.controller';
 import {
   getNotifications,
   markAllRead,
-} from '../controllers/notificationsController';
+} from '../controllers/notifications.controller';
 import authMiddleware from '../middleware/auth';
 
 const router = Router();

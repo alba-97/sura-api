@@ -1,8 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
-import bcrypt from 'bcryptjs';
-import { sequelize, User, Card, Transaction } from './src/models';
+import { sequelize } from './src/models';
 import surabankRoutes from './src/routes/surabank';
 
 dotenv.config({ quiet: true });

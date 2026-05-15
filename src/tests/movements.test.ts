@@ -5,6 +5,7 @@ jest.mock('../../src/models', () => ({
   Card: { findAll: jest.fn(), findOne: jest.fn() },
   Transaction: { findAndCountAll: jest.fn(), create: jest.fn() },
   UserContact: { findAll: jest.fn(), findOne: jest.fn(), count: jest.fn(), create: jest.fn() },
+  Notification: { create: jest.fn().mockResolvedValue({}) },
   sequelize: { sync: jest.fn().mockResolvedValue(true) },
 }));
 

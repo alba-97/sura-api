@@ -10,4 +10,7 @@ module.exports = {
     '!src/config/**',
   ],
   testMatch: ['**/tests/**/*.test.ts'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
 };
