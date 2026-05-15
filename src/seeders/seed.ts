@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({quiet: true});
 
 import bcrypt from 'bcryptjs';
-import { sequelize, User, Card, Transaction } from '../models';
+import { sequelize, User, Card, Transaction, UserContact } from '../models';
 
 const seed = async (): Promise<void> => {
   await sequelize.sync({ force: true });
@@ -14,6 +14,28 @@ const seed = async (): Promise<void> => {
     password: hashedPassword,
     name: 'Carlos Sura',
   });
+
+  const contactsData = [
+    { email: 'camila@example.com', name: 'Camila Montenegro' },
+    { email: 'leonardo@example.com', name: 'Leonardo Echazu' },
+    { email: 'martin@example.com', name: 'Martin Bozzini' },
+    { email: 'valentina@example.com', name: 'Valentina Rios' },
+    { email: 'juan@example.com', name: 'Juan Perez' },
+  ];
+
+  const contactUsers = await User.bulkCreate(
+    contactsData.map((c) => ({
+      ...c,
+      password: hashedPassword,
+    })),
+  );
+
+  await UserContact.bulkCreate(
+    contactUsers.map((cu) => ({
+      userId: user.id,
+      contactId: cu.id,
+    })),
+  );
 
   await Card.bulkCreate([
     {
@@ -71,6 +93,34 @@ const seed = async (): Promise<void> => {
       amount: '$95',
       transactionType: 'CASH_IN',
       date: '2026-05-06',
+    },
+    {
+      userId: user.id,
+      title: 'Netflix',
+      amount: '$18',
+      transactionType: 'SUS',
+      date: '2026-05-05',
+    },
+    {
+      userId: user.id,
+      title: 'Valentina Rios',
+      amount: '$200',
+      transactionType: 'CASH_OUT',
+      date: '2026-05-04',
+    },
+    {
+      userId: user.id,
+      title: 'Spotify',
+      amount: '$12',
+      transactionType: 'SUS',
+      date: '2026-05-03',
+    },
+    {
+      userId: user.id,
+      title: 'Juan Perez',
+      amount: '$150',
+      transactionType: 'CASH_IN',
+      date: '2026-05-02',
     },
   ]);
 

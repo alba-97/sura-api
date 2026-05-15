@@ -3,7 +3,7 @@ import request from 'supertest';
 jest.mock('../../src/models', () => ({
   User: { findOne: jest.fn() },
   Card: { findAll: jest.fn() },
-  Transaction: { findAll: jest.fn(), count: jest.fn().mockResolvedValue(1) },
+  Transaction: { findAndCountAll: jest.fn() },
   sequelize: { sync: jest.fn().mockResolvedValue(true) },
 }));
 
@@ -14,68 +14,41 @@ const VALID_TOKEN = 'test-valid-token';
 const mockUser = { id: 1, name: 'Carlos Sura', token: VALID_TOKEN };
 
 const mockMovements = [
-  {
-    id: 1,
-    userId: 1,
-    title: 'Adobe',
-    amount: '$125',
-    transactionType: 'SUS',
-    date: '2026-05-10',
-  },
-  {
-    id: 2,
-    userId: 1,
-    title: 'Camila Montenegro',
-    amount: '$95',
-    transactionType: 'CASH_IN',
-    date: '2026-05-09',
-  },
-  {
-    id: 3,
-    userId: 1,
-    title: 'Figma',
-    amount: '$125',
-    transactionType: 'SUS',
-    date: '2026-05-08',
-  },
-  {
-    id: 4,
-    userId: 1,
-    title: 'Leonardo Echazu',
-    amount: '$95',
-    transactionType: 'CASH_OUT',
-    date: '2026-05-07',
-  },
-  {
-    id: 5,
-    userId: 1,
-    title: 'Martin Bozzini',
-    amount: '$95',
-    transactionType: 'CASH_IN',
-    date: '2026-05-06',
-  },
+  { id: 1, userId: 1, title: 'Adobe', amount: '$125', transactionType: 'SUS', date: '2026-05-10' },
+  { id: 2, userId: 1, title: 'Camila Montenegro', amount: '$95', transactionType: 'CASH_IN', date: '2026-05-09' },
+  { id: 3, userId: 1, title: 'Figma', amount: '$125', transactionType: 'SUS', date: '2026-05-08' },
+  { id: 4, userId: 1, title: 'Leonardo Echazu', amount: '$95', transactionType: 'CASH_OUT', date: '2026-05-07' },
 ];
 
 beforeEach(() => {
   jest.clearAllMocks();
   (User.findOne as jest.Mock).mockResolvedValue(mockUser);
-  (Transaction.findAll as jest.Mock).mockResolvedValue(mockMovements);
+  (Transaction.findAndCountAll as jest.Mock).mockResolvedValue({
+    rows: mockMovements,
+    count: 5,
+  });
 });
 
-describe('GET /surabank/movements/last', () => {
-  it('returns last 5 movements for authenticated user', async () => {
+describe('GET /surabank/movements', () => {
+  it('returns paginated movements with total for authenticated user', async () => {
     const res = await request(app)
-      .get('/surabank/movements/last')
+      .get('/surabank/movements')
       .set('Authorization', VALID_TOKEN);
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
-    expect(res.body.data).toHaveLength(5);
+    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(typeof res.body.total).toBe('number');
   });
 
   it('transaction entity has required fields', async () => {
+    (Transaction.findAndCountAll as jest.Mock).mockResolvedValue({
+      rows: mockMovements.slice(0, 1),
+      count: 1,
+    });
+
     const res = await request(app)
-      .get('/surabank/movements/last')
+      .get('/surabank/movements')
       .set('Authorization', VALID_TOKEN);
 
     const tx = res.body.data[0];
@@ -87,36 +60,53 @@ describe('GET /surabank/movements/last', () => {
     expect(['SUS', 'CASH_IN', 'CASH_OUT']).toContain(tx.transactionType);
   });
 
-  it('calls findAll with limit 5 and correct userId', async () => {
+  it('calls findAndCountAll with default pageSize 5, offset 0 and correct userId', async () => {
     await request(app)
-      .get('/surabank/movements/last')
+      .get('/surabank/movements')
       .set('Authorization', VALID_TOKEN);
 
-    expect(Transaction.findAll).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { userId: mockUser.id }, limit: 5 }),
+    expect(Transaction.findAndCountAll).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { userId: mockUser.id }, limit: 5, offset: 0 }),
     );
   });
 
-  it('does not return more than 5 movements', async () => {
-    const res = await request(app)
-      .get('/surabank/movements/last')
+  it('applies pagination correctly for page 2', async () => {
+    await request(app)
+      .get('/surabank/movements?pageNumber=2&pageSize=5')
       .set('Authorization', VALID_TOKEN);
 
-    expect(res.body.data.length).toBeLessThanOrEqual(5);
+    expect(Transaction.findAndCountAll).toHaveBeenCalledWith(
+      expect.objectContaining({ limit: 5, offset: 5 }),
+    );
+  });
+
+  it('applies text search filter on title', async () => {
+    await request(app)
+      .get('/surabank/movements?search=Adobe')
+      .set('Authorization', VALID_TOKEN);
+
+    expect(Transaction.findAndCountAll).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          userId: mockUser.id,
+          title: expect.objectContaining({}),
+        }),
+      }),
+    );
   });
 
   it('returns 401 without token', async () => {
-    const res = await request(app).get('/surabank/movements/last');
+    const res = await request(app).get('/surabank/movements');
     expect(res.status).toBe(401);
     expect(res.body.success).toBe(false);
-    expect(Transaction.findAll).not.toHaveBeenCalled();
+    expect(Transaction.findAndCountAll).not.toHaveBeenCalled();
   });
 
   it('returns 401 with invalid token', async () => {
     (User.findOne as jest.Mock).mockResolvedValue(null);
 
     const res = await request(app)
-      .get('/surabank/movements/last')
+      .get('/surabank/movements')
       .set('Authorization', 'bogus');
 
     expect(res.status).toBe(401);
@@ -124,10 +114,10 @@ describe('GET /surabank/movements/last', () => {
   });
 
   it('returns 500 on db error', async () => {
-    (Transaction.findAll as jest.Mock).mockRejectedValue(new Error('DB error'));
+    (Transaction.findAndCountAll as jest.Mock).mockRejectedValue(new Error('DB error'));
 
     const res = await request(app)
-      .get('/surabank/movements/last')
+      .get('/surabank/movements')
       .set('Authorization', VALID_TOKEN);
 
     expect(res.status).toBe(500);
