@@ -1,6 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config({quiet: true});
-
 import bcrypt from 'bcryptjs';
 import { sequelize, User, Card, Transaction, UserContact } from '../models';
 
@@ -13,6 +10,7 @@ const seed = async (): Promise<void> => {
     email: 'user@suragaming.com',
     password: hashedPassword,
     name: 'Carlos Sura',
+    balance: '2500.00',
   });
 
   const contactsData = [

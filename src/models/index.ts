@@ -3,12 +3,16 @@ import { User } from './User';
 import { Card } from './Card';
 import { Transaction } from './Transaction';
 import { UserContact } from './UserContact';
+import { Notification } from './Notification';
 
 User.hasMany(Card, { foreignKey: 'userId' });
 Card.belongsTo(User, { foreignKey: 'userId' });
 
 User.hasMany(Transaction, { foreignKey: 'userId' });
 Transaction.belongsTo(User, { foreignKey: 'userId' });
+
+User.hasMany(Notification, { foreignKey: 'userId' });
+Notification.belongsTo(User, { foreignKey: 'userId' });
 
 User.belongsToMany(User, {
   through: UserContact,
@@ -17,4 +21,4 @@ User.belongsToMany(User, {
   otherKey: 'contactId',
 });
 
-export { sequelize, User, Card, Transaction, UserContact };
+export { sequelize, User, Card, Transaction, UserContact, Notification };

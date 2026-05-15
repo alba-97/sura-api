@@ -1,8 +1,7 @@
 import { Sequelize } from 'sequelize';
+import dotenv from 'dotenv';
 
-if (process.env.NODE_ENV !== 'test') {
-  require('dotenv').config({ quiet: true });
-}
+dotenv.config({ quiet: true });
 
 const sequelize = new Sequelize(
   process.env.DB_NAME as string,

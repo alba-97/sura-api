@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { Op } from 'sequelize';
-import { Transaction, User, UserContact, Card } from '../models';
+import { Transaction, User, UserContact, Card, Notification } from '../models';
 
 export const getMovements = async (
   req: Request,
@@ -53,10 +53,7 @@ export const getContacts = async (
   }
 };
 
-export const transfer = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const transfer = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, amount, cardId } = req.body as {
       email?: string;
@@ -65,22 +62,36 @@ export const transfer = async (
     };
 
     if (!email || !amount || !cardId) {
-      res.status(400).json({ success: false, message: 'Email, amount and cardId are required' });
+      res
+        .status(400)
+        .json({
+          success: false,
+          message: 'Email, amount and cardId are required',
+        });
       return;
     }
 
     const recipient = await User.findOne({ where: { email } });
     if (!recipient) {
-      res.status(404).json({ success: false, message: 'User with that email does not exist' });
+      res
+        .status(404)
+        .json({
+          success: false,
+          message: 'User with that email does not exist',
+        });
       return;
     }
 
     if (recipient.id === req.user.id) {
-      res.status(400).json({ success: false, message: 'Cannot transfer to yourself' });
+      res
+        .status(400)
+        .json({ success: false, message: 'Cannot transfer to yourself' });
       return;
     }
 
-    const card = await Card.findOne({ where: { id: cardId, userId: req.user.id } });
+    const card = await Card.findOne({
+      where: { id: cardId, userId: req.user.id },
+    });
     if (!card) {
       res.status(404).json({ success: false, message: 'Card not found' });
       return;
@@ -119,6 +130,11 @@ export const transfer = async (
       amount: `$${amountNum.toFixed(2)}`,
       transactionType: 'CASH_IN',
       date: now,
+    });
+
+    await Notification.create({
+      userId: recipient.id,
+      message: `Recibiste $${amountNum.toFixed(2)} de ${senderName}`,
     });
 
     const existingContact = await UserContact.findOne({

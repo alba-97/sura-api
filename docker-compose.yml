@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:15-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: surabank
       POSTGRES_USER: surabank
