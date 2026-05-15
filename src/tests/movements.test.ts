@@ -90,8 +90,6 @@ beforeEach(() => {
   (Card.findOne as jest.Mock).mockResolvedValue(makeMockCard());
 });
 
-// ── GET /surabank/movements ──────────────────────────────────────────────────
-
 describe('GET /surabank/movements', () => {
   it('returns paginated movements with total for authenticated user', async () => {
     const res = await request(app)
@@ -182,8 +180,6 @@ describe('GET /surabank/movements', () => {
   });
 });
 
-// ── GET /surabank/contacts ───────────────────────────────────────────────────
-
 describe('GET /surabank/contacts', () => {
   it('returns contact list for authenticated user', async () => {
     (UserContact.findAll as jest.Mock).mockResolvedValue([{ contactId: 2 }]);
@@ -224,8 +220,6 @@ describe('GET /surabank/contacts', () => {
     expect(res.status).toBe(500);
   });
 });
-
-// ── POST /surabank/transfer ──────────────────────────────────────────────────
 
 describe('POST /surabank/transfer', () => {
   it('transfers money successfully and creates contact', async () => {

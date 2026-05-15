@@ -66,8 +66,6 @@ beforeEach(() => {
   (Card.findAll as jest.Mock).mockResolvedValue(mockCards);
 });
 
-// ── GET /surabank/cards ──────────────────────────────────────────────────────
-
 describe('GET /surabank/cards', () => {
   it('returns cards for authenticated user', async () => {
     const res = await request(app)
@@ -128,8 +126,6 @@ describe('GET /surabank/cards', () => {
   });
 });
 
-// ── GET /surabank/account ────────────────────────────────────────────────────
-
 describe('GET /surabank/account', () => {
   it('returns account balance for authenticated user', async () => {
     (User.findByPk as jest.Mock).mockResolvedValue(mockUser);
@@ -164,8 +160,6 @@ describe('GET /surabank/account', () => {
     expect(res.body.success).toBe(false);
   });
 });
-
-// ── POST /surabank/cards ─────────────────────────────────────────────────────
 
 describe('POST /surabank/cards', () => {
   it('creates a Visa card successfully', async () => {
@@ -252,8 +246,6 @@ describe('POST /surabank/cards', () => {
     expect(res.status).toBe(500);
   });
 });
-
-// ── POST /surabank/cards/transfer ────────────────────────────────────────────
 
 describe('POST /surabank/cards/transfer', () => {
   it('transfers from card to account successfully', async () => {
