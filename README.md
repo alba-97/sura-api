@@ -1,73 +1,73 @@
 # SuraBank API
 
-REST API para la aplicación bancaria SuraBank.
+REST API for the SuraBank banking application.
 
 ## Tech Stack
 
 - **Runtime**: Node.js
 - **Framework**: Express.js
-- **Base de datos**: PostgreSQL con Sequelize ORM
+- **Database**: PostgreSQL with Sequelize ORM
 - **Cache**: Redis
-- **Validación**: Zod
+- **Validation**: Zod
 - **Testing**: Jest + Supertest
 
-## Estructura
+## Structure
 
 ```
 api/
 ├── src/
-│   ├── config/          # Configuración (DB, Redis)
-│   ├── controllers/     # Controladores (auth, cards, movements, notifications)
+│   ├── config/          # Configuration (DB, Redis)
+│   ├── controllers/     # Controllers (auth, cards, movements, notifications)
 │   ├── middleware/     # Middleware (auth)
-│   ├── models/         # Modelos Sequelize (User, Card, Transaction, Notification)
-│   ├── repositories/   # Repositorios (lógica de acceso a datos)
-│   ├── routes/         # Rutas de la API
-│   ├── schemas/        # Schemas de validación Zod
-│   ├── services/       # Servicios (lógica de negocio)
-│   ├── seeders/        # Seeders de datos iniciales
-│   ├── types/          # Tipos TypeScript
-│   └── utils/          # Utilidades (errores)
-├── app.ts              # Punto de entrada
-├── docker-compose.yml  # Desarrollo local
-└── Dockerfile          # Producción
+│   ├── models/         # Sequelize models (User, Card, Transaction, Notification)
+│   ├── repositories/   # Repositories (data access layer)
+│   ├── routes/         # API routes
+│   ├── schemas/        # Zod validation schemas
+│   ├── services/       # Services (business logic)
+│   ├── seeders/        # Initial data seeders
+│   ├── types/          # TypeScript types
+│   └── utils/          # Utilities (errors)
+├── app.ts              # Entry point
+├── docker-compose.yml  # Local development
+└── Dockerfile          # Production
 ```
 
 ## Endpoints
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/surabank/login` | Iniciar sesión |
-| GET | `/surabank/account` | Obtener datos de cuenta |
-| GET | `/surabank/cards` | Listar tarjetas |
-| POST | `/surabank/cards` | Crear nueva tarjeta |
-| POST | `/surabank/cards/transfer` | Transferencia entre tarjetas |
-| GET | `/surabank/movements` | Historial de movimientos |
-| GET | `/surabank/contacts` | Lista de contactos |
-| POST | `/surabank/transfer` | Transferencia a contacto |
-| GET | `/surabank/notifications` | Lista de notificaciones |
-| PATCH | `/surabank/notifications/read-all` | Marcar todas como leídas |
+| POST | `/surabank/login` | Login |
+| GET | `/surabank/account` | Get account data |
+| GET | `/surabank/cards` | List cards |
+| POST | `/surabank/cards` | Create new card |
+| POST | `/surabank/cards/transfer` | Transfer between cards |
+| GET | `/surabank/movements` | Movement history |
+| GET | `/surabank/contacts` | List contacts |
+| POST | `/surabank/transfer` | Transfer to contact |
+| GET | `/surabank/notifications` | List notifications |
+| PATCH | `/surabank/notifications/read-all` | Mark all as read |
 
 ## Scripts
 
 ```bash
-npm run dev        # Desarrollo con nodemon
-npm run build      # Compilar TypeScript
-npm run start      # Ejecutar producción
-npm run seed       # Poblar base de datos
-npm run test       # Ejecutar tests
+npm run dev        # Development with nodemon
+npm run build      # Compile TypeScript
+npm run start      # Run production
+npm run seed       # Seed database
+npm run test       # Run tests
 npm run lint       # Linter
 ```
 
 ## Docker
 
 ```bash
-# Desarrollo
+# Development
 docker-compose up -d
 
-# Producción
+# Production
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
-## Variables de entorno
+## Environment Variables
 
-Ver `.env.example` para las variables requeridas.
+See `.env.example` for required variables.
