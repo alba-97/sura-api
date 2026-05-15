@@ -18,11 +18,19 @@ import app from '../../app';
 import { User, Transaction, UserContact, Card } from '../../src/models';
 
 const VALID_TOKEN = 'test-valid-token';
-const mockUser = { id: 1, name: 'Carlos Sura', token: VALID_TOKEN };
+const mockUser = {
+  id: 1,
+  name: 'Carlos Sura',
+  token: VALID_TOKEN,
+  balance: '1000.00',
+  update: jest.fn().mockResolvedValue(true),
+};
 const mockRecipient = {
   id: 2,
   name: 'Camila Montenegro',
   email: 'camila@test.com',
+  balance: '500.00',
+  update: jest.fn().mockResolvedValue(true),
 };
 
 const mockMovements = [
@@ -70,6 +78,8 @@ const makeMockCard = (overrides = {}) => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockUser.update = jest.fn().mockResolvedValue(true);
+  mockRecipient.update = jest.fn().mockResolvedValue(true);
   (User.findOne as jest.Mock).mockImplementation(
     ({ where }: { where: Record<string, unknown> }) => {
       if (where.token) return Promise.resolve(mockUser);

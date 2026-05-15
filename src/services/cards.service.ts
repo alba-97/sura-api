@@ -1,6 +1,6 @@
 import { AppError } from '@/utils/AppError';
 import { cacheGet, cacheSet, cacheDel } from '@/repositories/cache';
-import * as cardsRepo from '@/repositories/cards.repository';
+import * as cardsRepository from '@/repositories/cards.repository';
 
 const cardsKey = (userId: number) => `sb:cards:${userId}`;
 const accountKey = (userId: number) => `sb:acct:${userId}`;
@@ -8,7 +8,7 @@ const accountKey = (userId: number) => `sb:acct:${userId}`;
 export const getCards = async (userId: number) => {
   const cached = await cacheGet(cardsKey(userId));
   if (cached) return cached;
-  const cards = await cardsRepo.findCardsByUser(userId);
+  const cards = await cardsRepository.findCardsByUser(userId);
   await cacheSet(cardsKey(userId), cards, 60);
   return cards;
 };
@@ -16,7 +16,7 @@ export const getCards = async (userId: number) => {
 export const getAccount = async (userId: number) => {
   const cached = await cacheGet<{ balance: string }>(accountKey(userId));
   if (cached) return cached;
-  const user = await cardsRepo.findUserById(userId);
+  const user = await cardsRepository.findUserById(userId);
   const data = { balance: user?.balance ?? '0.00' };
   await cacheSet(accountKey(userId), data, 60);
   return data;
@@ -27,14 +27,14 @@ export const createCard = async (
   userName: string,
   issuer: string,
 ) => {
-  const count = await cardsRepo.countCardsByUser(userId);
+  const count = await cardsRepository.countCardsByUser(userId);
   if (count >= 6) throw new AppError(400, 'Maximum 6 cards allowed per user');
 
   const lastDigits = Math.floor(1000 + Math.random() * 9000);
   const month = String(Math.floor(1 + Math.random() * 12)).padStart(2, '0');
   const year = String(27 + Math.floor(Math.random() * 6));
 
-  const card = await cardsRepo.createCard({
+  const card = await cardsRepository.createCard({
     userId,
     issuer,
     name: userName,
@@ -67,7 +67,7 @@ export const internalTransfer = async (
   }
 
   if (fromType === 'card') {
-    const src = await cardsRepo.findCardById(fromId!, userId);
+    const src = await cardsRepository.findCardById(fromId!, userId);
     if (!src) throw new AppError(404, 'Source card not found');
     if (amount > parseFloat(src.balance))
       throw new AppError(400, 'Insufficient funds');
@@ -75,7 +75,7 @@ export const internalTransfer = async (
       balance: (parseFloat(src.balance) - amount).toFixed(2),
     });
   } else {
-    const usr = await cardsRepo.findUserById(userId);
+    const usr = await cardsRepository.findUserById(userId);
     if (!usr) throw new AppError(404, 'User not found');
     if (amount > parseFloat(usr.balance))
       throw new AppError(400, 'Insufficient funds');
@@ -85,13 +85,13 @@ export const internalTransfer = async (
   }
 
   if (toType === 'card') {
-    const dst = await cardsRepo.findCardById(toId!, userId);
+    const dst = await cardsRepository.findCardById(toId!, userId);
     if (!dst) throw new AppError(404, 'Destination card not found');
     await dst.update({
       balance: (parseFloat(dst.balance) + amount).toFixed(2),
     });
   } else {
-    const usr = await cardsRepo.findUserById(userId);
+    const usr = await cardsRepository.findUserById(userId);
     if (!usr) throw new AppError(404, 'User not found');
     await usr.update({
       balance: (parseFloat(usr.balance) + amount).toFixed(2),

@@ -6,7 +6,7 @@ import {
   cacheIncr,
   cacheGetNum,
 } from '@/repositories/cache';
-import * as movRepo from '@/repositories/movements.repository';
+import * as movementsRepository from '@/repositories/movements.repository';
 import * as notificationsService from '@/services/notifications.service';
 import type { TransactionType } from '@/models/Transaction';
 
@@ -29,7 +29,7 @@ export const getMovements = async (
   const cached = await cacheGet<{ data: unknown[]; total: number }>(key);
   if (cached) return cached;
 
-  const { count, rows } = await movRepo.findAndCountTransactions(
+  const { count, rows } = await movementsRepository.findAndCountTransactions(
     userId,
     page,
     search,
@@ -43,8 +43,8 @@ export const getContacts = async (userId: number) => {
   const cached = await cacheGet(contactsKey(userId));
   if (cached) return cached;
 
-  const ids = await movRepo.findContactIdsByUser(userId);
-  const contacts = await movRepo.findUsersByIds(ids);
+  const ids = await movementsRepository.findContactIdsByUser(userId);
+  const contacts = await movementsRepository.findUsersByIds(ids);
   await cacheSet(contactsKey(userId), contacts, 120);
   return contacts;
 };
@@ -58,13 +58,13 @@ export const transfer = async (
 ) => {
   if (isNaN(amount) || amount <= 0) throw new AppError(400, 'Invalid amount');
 
-  const recipient = await movRepo.findUserByEmail(email);
+  const recipient = await movementsRepository.findUserByEmail(email);
   if (!recipient)
     throw new AppError(404, 'User with that email does not exist');
   if (recipient.id === userId)
     throw new AppError(400, 'Cannot transfer to yourself');
 
-  const card = await movRepo.findCardById(cardId, userId);
+  const card = await movementsRepository.findCardById(cardId, userId);
   if (!card) throw new AppError(404, 'Card not found');
 
   const currentBalance = parseFloat(card.balance);
@@ -73,15 +73,18 @@ export const transfer = async (
   const newBalance = (currentBalance - amount).toFixed(2);
   await card.update({ balance: newBalance });
 
+  const recipientBalance = (parseFloat(recipient.balance) + amount).toFixed(2);
+  await recipient.update({ balance: recipientBalance });
+
   const now = new Date().toISOString().split('T')[0];
-  await movRepo.createTransaction({
+  await movementsRepository.createTransaction({
     userId,
     title: recipient.name,
     amount: `$${amount.toFixed(2)}`,
     transactionType: 'CASH_OUT' as TransactionType,
     date: now,
   });
-  await movRepo.createTransaction({
+  await movementsRepository.createTransaction({
     userId: recipient.id,
     title: userName,
     amount: `$${amount.toFixed(2)}`,
@@ -94,14 +97,17 @@ export const transfer = async (
     `Recibiste $${amount.toFixed(2)} de ${userName}`,
   );
 
-  const existing = await movRepo.findContactByUsers(userId, recipient.id);
+  const existing = await movementsRepository.findContactByUsers(
+    userId,
+    recipient.id,
+  );
   if (!existing) {
-    const count = await movRepo.countContactsByUser(userId);
+    const count = await movementsRepository.countContactsByUser(userId);
     if (count >= 7) {
-      const oldest = await movRepo.findOldestContact(userId);
-      if (oldest) await movRepo.destroyContact(oldest);
+      const oldest = await movementsRepository.findOldestContact(userId);
+      if (oldest) await movementsRepository.destroyContact(oldest);
     }
-    await movRepo.createContact(userId, recipient.id);
+    await movementsRepository.createContact(userId, recipient.id);
   }
 
   await cacheIncr(movVersionKey(userId));
