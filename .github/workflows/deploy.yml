@@ -12,11 +12,10 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Deploy
         run: |
           cd ~/apps/surabank-api
+
           git pull origin main
+
           docker compose up -d --build
