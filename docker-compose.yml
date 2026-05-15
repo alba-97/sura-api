@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: surabank
+      POSTGRES_USER: surabank
+      POSTGRES_PASSWORD: surabank123
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U surabank']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+volumes:
+  pgdata:
