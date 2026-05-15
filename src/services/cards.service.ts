@@ -22,7 +22,11 @@ export const getAccount = async (userId: number) => {
   return data;
 };
 
-export const createCard = async (userId: number, userName: string, issuer: string) => {
+export const createCard = async (
+  userId: number,
+  userName: string,
+  issuer: string,
+) => {
   const count = await cardsRepo.countCardsByUser(userId);
   if (count >= 6) throw new AppError(400, 'Maximum 6 cards allowed per user');
 
@@ -45,7 +49,13 @@ export const createCard = async (userId: number, userName: string, issuer: strin
 
 export const internalTransfer = async (
   userId: number,
-  body: { fromType: string; fromId?: number; toType: string; toId?: number; amount: number },
+  body: {
+    fromType: string;
+    fromId?: number;
+    toType: string;
+    toId?: number;
+    amount: number;
+  },
 ) => {
   const { fromType, fromId, toType, toId, amount } = body;
 
@@ -59,23 +69,33 @@ export const internalTransfer = async (
   if (fromType === 'card') {
     const src = await cardsRepo.findCardById(fromId!, userId);
     if (!src) throw new AppError(404, 'Source card not found');
-    if (amount > parseFloat(src.balance)) throw new AppError(400, 'Insufficient funds');
-    await src.update({ balance: (parseFloat(src.balance) - amount).toFixed(2) });
+    if (amount > parseFloat(src.balance))
+      throw new AppError(400, 'Insufficient funds');
+    await src.update({
+      balance: (parseFloat(src.balance) - amount).toFixed(2),
+    });
   } else {
     const usr = await cardsRepo.findUserById(userId);
     if (!usr) throw new AppError(404, 'User not found');
-    if (amount > parseFloat(usr.balance)) throw new AppError(400, 'Insufficient funds');
-    await usr.update({ balance: (parseFloat(usr.balance) - amount).toFixed(2) });
+    if (amount > parseFloat(usr.balance))
+      throw new AppError(400, 'Insufficient funds');
+    await usr.update({
+      balance: (parseFloat(usr.balance) - amount).toFixed(2),
+    });
   }
 
   if (toType === 'card') {
     const dst = await cardsRepo.findCardById(toId!, userId);
     if (!dst) throw new AppError(404, 'Destination card not found');
-    await dst.update({ balance: (parseFloat(dst.balance) + amount).toFixed(2) });
+    await dst.update({
+      balance: (parseFloat(dst.balance) + amount).toFixed(2),
+    });
   } else {
     const usr = await cardsRepo.findUserById(userId);
     if (!usr) throw new AppError(404, 'User not found');
-    await usr.update({ balance: (parseFloat(usr.balance) + amount).toFixed(2) });
+    await usr.update({
+      balance: (parseFloat(usr.balance) + amount).toFixed(2),
+    });
   }
 
   await cacheDel(cardsKey(userId), accountKey(userId));

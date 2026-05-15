@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
 export const createCardSchema = z.object({
-  issuer: z.enum(['Visa', 'Mastercard'], { message: 'issuer must be Visa or Mastercard' }),
+  issuer: z.enum(['Visa', 'Mastercard'], {
+    message: 'issuer must be Visa or Mastercard',
+  }),
 });
 
 export const internalTransferSchema = z
@@ -17,14 +19,14 @@ export const internalTransferSchema = z
   .superRefine((data, ctx) => {
     if (data.fromType === 'card' && !data.fromId) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom' as const,
         message: 'fromId required for card',
         path: ['fromId'],
       });
     }
     if (data.toType === 'card' && !data.toId) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom' as const,
         message: 'toId required for card',
         path: ['toId'],
       });

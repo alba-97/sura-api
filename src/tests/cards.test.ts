@@ -2,7 +2,12 @@ import request from 'supertest';
 
 jest.mock('../../src/models', () => ({
   User: { findOne: jest.fn(), findByPk: jest.fn() },
-  Card: { findAll: jest.fn(), findOne: jest.fn(), count: jest.fn(), create: jest.fn() },
+  Card: {
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    count: jest.fn(),
+    create: jest.fn(),
+  },
   Transaction: { findAll: jest.fn(), count: jest.fn().mockResolvedValue(1) },
   sequelize: { sync: jest.fn().mockResolvedValue(true) },
 }));
@@ -11,15 +16,40 @@ import app from '../../app';
 import { User, Card } from '../../src/models';
 
 const VALID_TOKEN = 'test-valid-token';
-const mockUser = { id: 1, name: 'Carlos Sura', balance: '1000.00', token: VALID_TOKEN };
+const mockUser = {
+  id: 1,
+  name: 'Carlos Sura',
+  balance: '1000.00',
+  token: VALID_TOKEN,
+};
 
 const mockCards = [
-  { id: 1, userId: 1, issuer: 'Mastercard', name: 'Carlos Sura', expDate: '02/30', lastDigits: 1234, balance: '978.85', currency: 'USD' },
-  { id: 2, userId: 1, issuer: 'Visa',       name: 'Carlos Sura', expDate: '05/28', lastDigits: 5678, balance: '3241.50', currency: 'USD' },
+  {
+    id: 1,
+    userId: 1,
+    issuer: 'Mastercard',
+    name: 'Carlos Sura',
+    expDate: '02/30',
+    lastDigits: 1234,
+    balance: '978.85',
+    currency: 'USD',
+  },
+  {
+    id: 2,
+    userId: 1,
+    issuer: 'Visa',
+    name: 'Carlos Sura',
+    expDate: '05/28',
+    lastDigits: 5678,
+    balance: '3241.50',
+    currency: 'USD',
+  },
 ];
 
 const makeMockCard = (overrides = {}) => ({
-  id: 1, userId: 1, balance: '500.00',
+  id: 1,
+  userId: 1,
+  balance: '500.00',
   update: jest.fn().mockResolvedValue(true),
   ...overrides,
 });
@@ -40,7 +70,9 @@ beforeEach(() => {
 
 describe('GET /surabank/cards', () => {
   it('returns cards for authenticated user', async () => {
-    const res = await request(app).get('/surabank/cards').set('Authorization', VALID_TOKEN);
+    const res = await request(app)
+      .get('/surabank/cards')
+      .set('Authorization', VALID_TOKEN);
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data).toHaveLength(2);
@@ -50,7 +82,9 @@ describe('GET /surabank/cards', () => {
   });
 
   it('card entity has required fields', async () => {
-    const res = await request(app).get('/surabank/cards').set('Authorization', VALID_TOKEN);
+    const res = await request(app)
+      .get('/surabank/cards')
+      .set('Authorization', VALID_TOKEN);
     const card = res.body.data[0];
     expect(card).toHaveProperty('id');
     expect(card).toHaveProperty('issuer');
@@ -63,7 +97,9 @@ describe('GET /surabank/cards', () => {
 
   it('calls findAll with the authenticated user id', async () => {
     await request(app).get('/surabank/cards').set('Authorization', VALID_TOKEN);
-    expect(Card.findAll).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: mockUser.id } }));
+    expect(Card.findAll).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { userId: mockUser.id } }),
+    );
   });
 
   it('returns 401 without token', async () => {
@@ -75,14 +111,18 @@ describe('GET /surabank/cards', () => {
 
   it('returns 401 with invalid token', async () => {
     (User.findOne as jest.Mock).mockResolvedValue(null);
-    const res = await request(app).get('/surabank/cards').set('Authorization', 'bogus-token');
+    const res = await request(app)
+      .get('/surabank/cards')
+      .set('Authorization', 'bogus-token');
     expect(res.status).toBe(401);
     expect(res.body.success).toBe(false);
   });
 
   it('returns 500 on db error', async () => {
     (Card.findAll as jest.Mock).mockRejectedValue(new Error('DB error'));
-    const res = await request(app).get('/surabank/cards').set('Authorization', VALID_TOKEN);
+    const res = await request(app)
+      .get('/surabank/cards')
+      .set('Authorization', VALID_TOKEN);
     expect(res.status).toBe(500);
     expect(res.body.success).toBe(false);
   });
@@ -93,7 +133,9 @@ describe('GET /surabank/cards', () => {
 describe('GET /surabank/account', () => {
   it('returns account balance for authenticated user', async () => {
     (User.findByPk as jest.Mock).mockResolvedValue(mockUser);
-    const res = await request(app).get('/surabank/account').set('Authorization', VALID_TOKEN);
+    const res = await request(app)
+      .get('/surabank/account')
+      .set('Authorization', VALID_TOKEN);
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data).toHaveProperty('balance', '1000.00');
@@ -101,7 +143,9 @@ describe('GET /surabank/account', () => {
 
   it('returns 0.00 when user has no balance field', async () => {
     (User.findByPk as jest.Mock).mockResolvedValue(null);
-    const res = await request(app).get('/surabank/account').set('Authorization', VALID_TOKEN);
+    const res = await request(app)
+      .get('/surabank/account')
+      .set('Authorization', VALID_TOKEN);
     expect(res.status).toBe(200);
     expect(res.body.data.balance).toBe('0.00');
   });
@@ -113,7 +157,9 @@ describe('GET /surabank/account', () => {
 
   it('returns 500 on db error', async () => {
     (User.findByPk as jest.Mock).mockRejectedValue(new Error('DB'));
-    const res = await request(app).get('/surabank/account').set('Authorization', VALID_TOKEN);
+    const res = await request(app)
+      .get('/surabank/account')
+      .set('Authorization', VALID_TOKEN);
     expect(res.status).toBe(500);
     expect(res.body.success).toBe(false);
   });
@@ -124,7 +170,11 @@ describe('GET /surabank/account', () => {
 describe('POST /surabank/cards', () => {
   it('creates a Visa card successfully', async () => {
     (Card.count as jest.Mock).mockResolvedValue(2);
-    (Card.create as jest.Mock).mockResolvedValue({ id: 3, issuer: 'Visa', userId: 1 });
+    (Card.create as jest.Mock).mockResolvedValue({
+      id: 3,
+      issuer: 'Visa',
+      userId: 1,
+    });
 
     const res = await request(app)
       .post('/surabank/cards')
@@ -138,7 +188,11 @@ describe('POST /surabank/cards', () => {
 
   it('creates a Mastercard successfully', async () => {
     (Card.count as jest.Mock).mockResolvedValue(0);
-    (Card.create as jest.Mock).mockResolvedValue({ id: 4, issuer: 'Mastercard', userId: 1 });
+    (Card.create as jest.Mock).mockResolvedValue({
+      id: 4,
+      issuer: 'Mastercard',
+      userId: 1,
+    });
 
     const res = await request(app)
       .post('/surabank/cards')
@@ -183,7 +237,9 @@ describe('POST /surabank/cards', () => {
   });
 
   it('returns 401 without token', async () => {
-    const res = await request(app).post('/surabank/cards').send({ issuer: 'Visa' });
+    const res = await request(app)
+      .post('/surabank/cards')
+      .send({ issuer: 'Visa' });
     expect(res.status).toBe(401);
   });
 
@@ -243,7 +299,13 @@ describe('POST /surabank/cards/transfer', () => {
     const res = await request(app)
       .post('/surabank/cards/transfer')
       .set('Authorization', VALID_TOKEN)
-      .send({ fromType: 'card', fromId: 1, toType: 'card', toId: 2, amount: 50 });
+      .send({
+        fromType: 'card',
+        fromId: 1,
+        toType: 'card',
+        toId: 2,
+        amount: 50,
+      });
 
     expect(res.status).toBe(200);
     expect(srcCard.update).toHaveBeenCalledWith({ balance: '450.00' });
@@ -279,7 +341,13 @@ describe('POST /surabank/cards/transfer', () => {
     const res = await request(app)
       .post('/surabank/cards/transfer')
       .set('Authorization', VALID_TOKEN)
-      .send({ fromType: 'card', fromId: 1, toType: 'card', toId: 1, amount: 50 });
+      .send({
+        fromType: 'card',
+        fromId: 1,
+        toType: 'card',
+        toId: 1,
+        amount: 50,
+      });
     expect(res.status).toBe(400);
   });
 
@@ -301,7 +369,9 @@ describe('POST /surabank/cards/transfer', () => {
   });
 
   it('returns 400 when source card has insufficient funds', async () => {
-    (Card.findOne as jest.Mock).mockResolvedValue(makeMockCard({ balance: '10.00' }));
+    (Card.findOne as jest.Mock).mockResolvedValue(
+      makeMockCard({ balance: '10.00' }),
+    );
     const res = await request(app)
       .post('/surabank/cards/transfer')
       .set('Authorization', VALID_TOKEN)
@@ -311,7 +381,9 @@ describe('POST /surabank/cards/transfer', () => {
   });
 
   it('returns 400 when account has insufficient funds', async () => {
-    (User.findByPk as jest.Mock).mockResolvedValue(makeMockUser({ balance: '5.00' }));
+    (User.findByPk as jest.Mock).mockResolvedValue(
+      makeMockUser({ balance: '5.00' }),
+    );
     const res = await request(app)
       .post('/surabank/cards/transfer')
       .set('Authorization', VALID_TOKEN)
@@ -338,12 +410,20 @@ describe('POST /surabank/cards/transfer', () => {
     const res = await request(app)
       .post('/surabank/cards/transfer')
       .set('Authorization', VALID_TOKEN)
-      .send({ fromType: 'card', fromId: 1, toType: 'card', toId: 99, amount: 50 });
+      .send({
+        fromType: 'card',
+        fromId: 1,
+        toType: 'card',
+        toId: 99,
+        amount: 50,
+      });
     expect(res.status).toBe(404);
   });
 
   it('returns 401 without token', async () => {
-    const res = await request(app).post('/surabank/cards/transfer').send({ fromType: 'card', fromId: 1, toType: 'account', amount: 50 });
+    const res = await request(app)
+      .post('/surabank/cards/transfer')
+      .send({ fromType: 'card', fromId: 1, toType: 'account', amount: 50 });
     expect(res.status).toBe(401);
   });
 
