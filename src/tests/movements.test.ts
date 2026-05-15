@@ -236,7 +236,7 @@ describe('POST /surabank/transfer', () => {
     const res = await request(app)
       .post('/surabank/transfer')
       .set('Authorization', VALID_TOKEN)
-      .send({ email: 'camila@test.com', amount: '100', cardId: 1 });
+      .send({ email: 'camila@test.com', amount: 100, cardId: 1 });
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
@@ -258,7 +258,7 @@ describe('POST /surabank/transfer', () => {
     const res = await request(app)
       .post('/surabank/transfer')
       .set('Authorization', VALID_TOKEN)
-      .send({ email: 'camila@test.com', amount: '50', cardId: 1 });
+      .send({ email: 'camila@test.com', amount: 50, cardId: 1 });
 
     expect(res.status).toBe(200);
     expect(UserContact.create).not.toHaveBeenCalled();
@@ -276,7 +276,7 @@ describe('POST /surabank/transfer', () => {
     const res = await request(app)
       .post('/surabank/transfer')
       .set('Authorization', VALID_TOKEN)
-      .send({ email: 'camila@test.com', amount: '50', cardId: 1 });
+      .send({ email: 'camila@test.com', amount: 50, cardId: 1 });
 
     expect(res.status).toBe(200);
     expect(oldest.destroy).toHaveBeenCalled();
@@ -302,7 +302,7 @@ describe('POST /surabank/transfer', () => {
     const res = await request(app)
       .post('/surabank/transfer')
       .set('Authorization', VALID_TOKEN)
-      .send({ email: 'nobody@test.com', amount: '50', cardId: 1 });
+      .send({ email: 'nobody@test.com', amount: 50, cardId: 1 });
 
     expect(res.status).toBe(404);
     expect(res.body.message).toMatch(/does not exist/);
@@ -321,7 +321,7 @@ describe('POST /surabank/transfer', () => {
     const res = await request(app)
       .post('/surabank/transfer')
       .set('Authorization', VALID_TOKEN)
-      .send({ email: 'self@test.com', amount: '50', cardId: 1 });
+      .send({ email: 'self@test.com', amount: 50, cardId: 1 });
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/yourself/);
@@ -333,7 +333,7 @@ describe('POST /surabank/transfer', () => {
     const res = await request(app)
       .post('/surabank/transfer')
       .set('Authorization', VALID_TOKEN)
-      .send({ email: 'camila@test.com', amount: '50', cardId: 99 });
+      .send({ email: 'camila@test.com', amount: 50, cardId: 99 });
 
     expect(res.status).toBe(404);
     expect(res.body.message).toMatch(/Card not found/);
@@ -347,7 +347,7 @@ describe('POST /surabank/transfer', () => {
     const res = await request(app)
       .post('/surabank/transfer')
       .set('Authorization', VALID_TOKEN)
-      .send({ email: 'camila@test.com', amount: '-50', cardId: 1 });
+      .send({ email: 'camila@test.com', amount: -50, cardId: 1 });
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/Invalid amount/);
@@ -361,7 +361,7 @@ describe('POST /surabank/transfer', () => {
     const res = await request(app)
       .post('/surabank/transfer')
       .set('Authorization', VALID_TOKEN)
-      .send({ email: 'camila@test.com', amount: '500', cardId: 1 });
+      .send({ email: 'camila@test.com', amount: 500, cardId: 1 });
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/Insufficient/);
@@ -370,7 +370,7 @@ describe('POST /surabank/transfer', () => {
   it('returns 401 without token', async () => {
     const res = await request(app)
       .post('/surabank/transfer')
-      .send({ email: 'camila@test.com', amount: '50', cardId: 1 });
+      .send({ email: 'camila@test.com', amount: 50, cardId: 1 });
     expect(res.status).toBe(401);
   });
 
@@ -379,7 +379,7 @@ describe('POST /surabank/transfer', () => {
     const res = await request(app)
       .post('/surabank/transfer')
       .set('Authorization', VALID_TOKEN)
-      .send({ email: 'camila@test.com', amount: '50', cardId: 1 });
+      .send({ email: 'camila@test.com', amount: 50, cardId: 1 });
     expect(res.status).toBe(500);
   });
 });
