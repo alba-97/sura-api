@@ -1,4 +1,4 @@
-import { AppError } from '@/utils/AppError';
+import { HttpError } from '@/utils/HttpError';
 import {
   cacheGet,
   cacheSet,
@@ -56,19 +56,19 @@ export const transfer = async (
   amount: number,
   cardId: number,
 ) => {
-  if (isNaN(amount) || amount <= 0) throw new AppError(400, 'Invalid amount');
+  if (isNaN(amount) || amount <= 0) throw new HttpError(400, 'Invalid amount');
 
   const recipient = await movementsRepository.findUserByEmail(email);
   if (!recipient)
-    throw new AppError(404, 'User with that email does not exist');
+    throw new HttpError(404, 'User with that email does not exist');
   if (recipient.id === userId)
-    throw new AppError(400, 'Cannot transfer to yourself');
+    throw new HttpError(400, 'Cannot transfer to yourself');
 
   const card = await movementsRepository.findCardById(cardId, userId);
-  if (!card) throw new AppError(404, 'Card not found');
+  if (!card) throw new HttpError(404, 'Card not found');
 
   const currentBalance = parseFloat(card.balance);
-  if (amount > currentBalance) throw new AppError(400, 'Insufficient funds');
+  if (amount > currentBalance) throw new HttpError(400, 'Insufficient funds');
 
   const newBalance = (currentBalance - amount).toFixed(2);
   await card.update({ balance: newBalance });

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { transferSchema, getMovementsSchema } from '@/schemas/movements.schema';
 import * as movementsService from '@/services/movements.service';
-import { AppError } from '@/utils/AppError';
+import { HttpError } from '@/utils/HttpError';
 
 export const getMovements = async (
   req: Request,
@@ -60,7 +60,7 @@ export const transfer = async (req: Request, res: Response): Promise<void> => {
       .status(200)
       .json({ success: true, message: 'Transfer successful', data });
   } catch (err) {
-    if (err instanceof AppError) {
+    if (err instanceof HttpError) {
       res.status(err.statusCode).json({ success: false, message: err.message });
     } else {
       res.status(500).json({ success: false, message: 'Server error' });

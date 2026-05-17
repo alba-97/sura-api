@@ -34,18 +34,18 @@ api/
 
 ## Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/surabank/login` | Login |
-| GET | `/surabank/account` | Get account data |
-| GET | `/surabank/cards` | List cards |
-| POST | `/surabank/cards` | Create new card |
-| POST | `/surabank/cards/transfer` | Transfer between cards |
-| GET | `/surabank/movements` | Movement history |
-| GET | `/surabank/contacts` | List contacts |
-| POST | `/surabank/transfer` | Transfer to contact |
-| GET | `/surabank/notifications` | List notifications |
-| PATCH | `/surabank/notifications/read-all` | Mark all as read |
+| Method | Endpoint                           | Description            |
+| ------ | ---------------------------------- | ---------------------- |
+| POST   | `/surabank/login`                  | Login                  |
+| GET    | `/surabank/account`                | Get account data       |
+| GET    | `/surabank/cards`                  | List cards             |
+| POST   | `/surabank/cards`                  | Create new card        |
+| POST   | `/surabank/cards/transfer`         | Transfer between cards |
+| GET    | `/surabank/movements`              | Movement history       |
+| GET    | `/surabank/contacts`               | List contacts          |
+| POST   | `/surabank/transfer`               | Transfer to contact    |
+| GET    | `/surabank/notifications`          | List notifications     |
+| PATCH  | `/surabank/notifications/read-all` | Mark all as read       |
 
 ## Scripts
 

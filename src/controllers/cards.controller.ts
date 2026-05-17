@@ -4,7 +4,7 @@ import {
   internalTransferSchema,
 } from '@/schemas/cards.schema';
 import * as cardsService from '@/services/cards.service';
-import { AppError } from '@/utils/AppError';
+import { HttpError } from '@/utils/HttpError';
 
 export const getCards = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -46,7 +46,7 @@ export const createCard = async (
     );
     res.status(201).json({ success: true, data });
   } catch (err) {
-    if (err instanceof AppError) {
+    if (err instanceof HttpError) {
       res.status(err.statusCode).json({ success: false, message: err.message });
     } else {
       res.status(500).json({ success: false, message: 'Server error' });
@@ -69,7 +69,7 @@ export const internalTransfer = async (
     await cardsService.internalTransfer(req.user.id, parsed.data);
     res.status(200).json({ success: true, message: 'Transfer successful' });
   } catch (err) {
-    if (err instanceof AppError) {
+    if (err instanceof HttpError) {
       res.status(err.statusCode).json({ success: false, message: err.message });
     } else {
       res.status(500).json({ success: false, message: 'Server error' });

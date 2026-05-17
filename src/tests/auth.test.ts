@@ -54,6 +54,7 @@ describe('POST /surabank/login', () => {
 
     expect(res.status).toBe(401);
     expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('Usuario o contraseña incorrecta');
   });
 
   it('returns 401 on unknown email', async () => {
@@ -65,6 +66,7 @@ describe('POST /surabank/login', () => {
 
     expect(res.status).toBe(401);
     expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('Usuario o contraseña incorrecta');
   });
 
   it('returns 400 when fields are missing', async () => {
