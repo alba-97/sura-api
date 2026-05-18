@@ -1,8 +1,9 @@
+import { EMAIL_IS_REQUIRED, INVALID_AMOUNT } from '@/config/errors';
 import { z } from 'zod';
 
 export const transferSchema = z.object({
-  email: z.string().min(1, 'Email is required'),
-  amount: z.number().min(1, 'Invalid amount'),
+  email: z.string().min(1, EMAIL_IS_REQUIRED),
+  amount: z.number().min(1, INVALID_AMOUNT),
   cardId: z.number().int().positive(),
 });
 

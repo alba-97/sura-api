@@ -1,4 +1,7 @@
 import request from 'supertest';
+import app from '../../app';
+import { User, Card } from '@/models';
+import { INSUFFICIENT_FUNDS, INVALID_AMOUNT, MAX_CARDS } from '@/config/errors';
 
 jest.mock('../../src/models', () => ({
   User: { findOne: jest.fn(), findByPk: jest.fn() },
@@ -11,9 +14,6 @@ jest.mock('../../src/models', () => ({
   Transaction: { findAll: jest.fn(), count: jest.fn().mockResolvedValue(1) },
   sequelize: { sync: jest.fn().mockResolvedValue(true) },
 }));
-
-import app from '../../app';
-import { User, Card } from '../../src/models';
 
 const VALID_TOKEN = 'test-valid-token';
 const mockUser = {
@@ -227,7 +227,7 @@ describe('POST /surabank/cards', () => {
       .send({ issuer: 'Visa' });
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toMatch(/6 cards/);
+    expect(res.body.message).toBe(MAX_CARDS);
   });
 
   it('returns 401 without token', async () => {
@@ -318,7 +318,7 @@ describe('POST /surabank/cards/transfer', () => {
       .set('Authorization', VALID_TOKEN)
       .send({ fromType: 'card', fromId: 1, toType: 'account', amount: -10 });
     expect(res.status).toBe(400);
-    expect(res.body.message).toMatch(/Invalid amount/);
+    expect(res.body.message).toBe(INVALID_AMOUNT);
   });
 
   it('returns 400 for account-to-account transfer', async () => {
@@ -369,7 +369,7 @@ describe('POST /surabank/cards/transfer', () => {
       .set('Authorization', VALID_TOKEN)
       .send({ fromType: 'card', fromId: 1, toType: 'account', amount: 500 });
     expect(res.status).toBe(400);
-    expect(res.body.message).toMatch(/Insufficient/);
+    expect(res.body.message).toBe(INSUFFICIENT_FUNDS);
   });
 
   it('returns 400 when account has insufficient funds', async () => {
@@ -381,7 +381,7 @@ describe('POST /surabank/cards/transfer', () => {
       .set('Authorization', VALID_TOKEN)
       .send({ fromType: 'account', toType: 'card', toId: 1, amount: 500 });
     expect(res.status).toBe(400);
-    expect(res.body.message).toMatch(/Insufficient/);
+    expect(res.body.message).toBe(INSUFFICIENT_FUNDS);
   });
 
   it('returns 400 when toId is missing for card destination', async () => {

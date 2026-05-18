@@ -1,8 +1,13 @@
+import {
+  FIELDS_REQUIRED,
+  INVALID_AMOUNT,
+  VISA_OR_MASTERCARD,
+} from '@/config/errors';
 import { z } from 'zod';
 
 export const createCardSchema = z.object({
   issuer: z.enum(['Visa', 'Mastercard'], {
-    message: 'issuer must be Visa or Mastercard',
+    message: VISA_OR_MASTERCARD,
   }),
 });
 
@@ -13,8 +18,8 @@ export const internalTransferSchema = z
     fromId: z.number().int().positive().optional(),
     toId: z.number().int().positive().optional(),
     amount: z
-      .number({ message: 'fromType, toType and amount are required' })
-      .positive({ message: 'Invalid amount' }),
+      .number({ message: FIELDS_REQUIRED })
+      .positive({ message: INVALID_AMOUNT }),
   })
   .superRefine((data, ctx) => {
     if (data.fromType === 'card' && !data.fromId) {

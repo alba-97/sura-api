@@ -12,3 +12,7 @@ export const USER_WITH_EMAIL_NOT_EXIST = 'No existe un usuario con ese correo';
 export const CANNOT_TRANSFER_TO_SELF = 'No puedes transferir a ti mismo';
 export const CARD_NOT_FOUND = 'Tarjeta no encontrada';
 export const INVALID_CREDENTIALS = 'Usuario o contraseña incorrecta';
+export const EMAIL_IS_REQUIRED = 'Email es requerido';
+export const PASSWORD_IS_REQUIRED = 'Password es requerido';
+export const FIELDS_REQUIRED = 'Todos los campos son requeridos';
+export const VISA_OR_MASTERCARD = 'El emisor debe ser Visa o Mastercard';

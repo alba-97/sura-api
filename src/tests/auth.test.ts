@@ -1,4 +1,8 @@
 import request from 'supertest';
+import app from '../../app';
+import bcrypt from 'bcryptjs';
+import { User } from '../../src/models';
+import { INVALID_CREDENTIALS } from '@/config/errors';
 
 jest.mock('bcryptjs', () => ({
   compare: jest.fn(),
@@ -11,10 +15,6 @@ jest.mock('../../src/models', () => ({
   Transaction: { findAll: jest.fn(), count: jest.fn().mockResolvedValue(1) },
   sequelize: { sync: jest.fn().mockResolvedValue(true) },
 }));
-
-import app from '../../app';
-import bcrypt from 'bcryptjs';
-import { User } from '../../src/models';
 
 const mockUser = {
   id: 1,
@@ -54,7 +54,7 @@ describe('POST /surabank/login', () => {
 
     expect(res.status).toBe(401);
     expect(res.body.success).toBe(false);
-    expect(res.body.message).toBe('Usuario o contraseña incorrecta');
+    expect(res.body.message).toBe(INVALID_CREDENTIALS);
   });
 
   it('returns 401 on unknown email', async () => {
@@ -66,7 +66,7 @@ describe('POST /surabank/login', () => {
 
     expect(res.status).toBe(401);
     expect(res.body.success).toBe(false);
-    expect(res.body.message).toBe('Usuario o contraseña incorrecta');
+    expect(res.body.message).toBe(INVALID_CREDENTIALS);
   });
 
   it('returns 400 when fields are missing', async () => {

@@ -1,4 +1,13 @@
 import request from 'supertest';
+import app from '../../app';
+import { User, Transaction, UserContact, Card } from '@/models';
+import {
+  CANNOT_TRANSFER_TO_SELF,
+  CARD_NOT_FOUND,
+  INSUFFICIENT_FUNDS,
+  INVALID_AMOUNT,
+  USER_WITH_EMAIL_NOT_EXIST,
+} from '@/config/errors';
 
 jest.mock('../../src/models', () => ({
   User: { findOne: jest.fn(), findAll: jest.fn(), findByPk: jest.fn() },
@@ -13,9 +22,6 @@ jest.mock('../../src/models', () => ({
   Notification: { create: jest.fn().mockResolvedValue({}) },
   sequelize: { sync: jest.fn().mockResolvedValue(true) },
 }));
-
-import app from '../../app';
-import { User, Transaction, UserContact, Card } from '../../src/models';
 
 const VALID_TOKEN = 'test-valid-token';
 const mockUser = {
@@ -309,7 +315,7 @@ describe('POST /surabank/transfer', () => {
       .send({ email: 'nobody@test.com', amount: 50, cardId: 1 });
 
     expect(res.status).toBe(404);
-    expect(res.body.message).toMatch(/does not exist/);
+    expect(res.body.message).toBe(USER_WITH_EMAIL_NOT_EXIST);
   });
 
   it('returns 400 when transferring to yourself', async () => {
@@ -328,7 +334,7 @@ describe('POST /surabank/transfer', () => {
       .send({ email: 'self@test.com', amount: 50, cardId: 1 });
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toMatch(/yourself/);
+    expect(res.body.message).toBe(CANNOT_TRANSFER_TO_SELF);
   });
 
   it('returns 404 when card not found', async () => {
@@ -340,7 +346,7 @@ describe('POST /surabank/transfer', () => {
       .send({ email: 'camila@test.com', amount: 50, cardId: 99 });
 
     expect(res.status).toBe(404);
-    expect(res.body.message).toMatch(/Card not found/);
+    expect(res.body.message).toBe(CARD_NOT_FOUND);
   });
 
   it('returns 400 for invalid amount', async () => {
@@ -354,7 +360,7 @@ describe('POST /surabank/transfer', () => {
       .send({ email: 'camila@test.com', amount: -50, cardId: 1 });
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toMatch(/Invalid amount/);
+    expect(res.body.message).toBe(INVALID_AMOUNT);
   });
 
   it('returns 400 when card has insufficient funds', async () => {
@@ -368,7 +374,7 @@ describe('POST /surabank/transfer', () => {
       .send({ email: 'camila@test.com', amount: 500, cardId: 1 });
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toMatch(/Insufficient/);
+    expect(res.body.message).toBe(INSUFFICIENT_FUNDS);
   });
 
   it('returns 401 without token', async () => {
