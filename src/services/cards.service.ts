@@ -1,5 +1,14 @@
 import { HttpError } from '@/utils/HttpError';
 import { cacheGet, cacheSet, cacheDel } from '@/repositories/cache';
+import {
+  MAX_CARDS,
+  CANNOT_TRANSFER_ACCOUNT_TO_ACCOUNT,
+  CANNOT_TRANSFER_TO_SAME_CARD,
+  SOURCE_CARD_NOT_FOUND,
+  INSUFFICIENT_FUNDS,
+  USER_NOT_FOUND,
+  DESTINATION_CARD_NOT_FOUND,
+} from '@/config/errors';
 import * as cardsRepository from '@/repositories/cards.repository';
 
 const cardsKey = (userId: number) => `sb:cards:${userId}`;
@@ -28,7 +37,7 @@ export const createCard = async (
   issuer: string,
 ) => {
   const count = await cardsRepository.countCardsByUser(userId);
-  if (count >= 6) throw new HttpError(400, 'Maximum 6 cards allowed per user');
+  if (count >= 6) throw new HttpError(400, MAX_CARDS);
 
   const lastDigits = Math.floor(1000 + Math.random() * 9000);
   const month = String(Math.floor(1 + Math.random() * 12)).padStart(2, '0');
@@ -60,25 +69,25 @@ export const internalTransfer = async (
   const { fromType, fromId, toType, toId, amount } = body;
 
   if (fromType === 'account' && toType === 'account') {
-    throw new HttpError(400, 'Cannot transfer from account to account');
+    throw new HttpError(400, CANNOT_TRANSFER_ACCOUNT_TO_ACCOUNT);
   }
   if (fromType === 'card' && toType === 'card' && fromId === toId) {
-    throw new HttpError(400, 'Cannot transfer to the same card');
+    throw new HttpError(400, CANNOT_TRANSFER_TO_SAME_CARD);
   }
 
   if (fromType === 'card') {
     const src = await cardsRepository.findCardById(fromId!, userId);
-    if (!src) throw new HttpError(404, 'Source card not found');
+    if (!src) throw new HttpError(404, SOURCE_CARD_NOT_FOUND);
     if (amount > parseFloat(src.balance))
-      throw new HttpError(400, 'Insufficient funds');
+      throw new HttpError(400, INSUFFICIENT_FUNDS);
     await src.update({
       balance: (parseFloat(src.balance) - amount).toFixed(2),
     });
   } else {
     const usr = await cardsRepository.findUserById(userId);
-    if (!usr) throw new HttpError(404, 'User not found');
+    if (!usr) throw new HttpError(404, USER_NOT_FOUND);
     if (amount > parseFloat(usr.balance))
-      throw new HttpError(400, 'Insufficient funds');
+      throw new HttpError(400, INSUFFICIENT_FUNDS);
     await usr.update({
       balance: (parseFloat(usr.balance) - amount).toFixed(2),
     });
@@ -86,13 +95,13 @@ export const internalTransfer = async (
 
   if (toType === 'card') {
     const dst = await cardsRepository.findCardById(toId!, userId);
-    if (!dst) throw new HttpError(404, 'Destination card not found');
+    if (!dst) throw new HttpError(404, DESTINATION_CARD_NOT_FOUND);
     await dst.update({
       balance: (parseFloat(dst.balance) + amount).toFixed(2),
     });
   } else {
     const usr = await cardsRepository.findUserById(userId);
-    if (!usr) throw new HttpError(404, 'User not found');
+    if (!usr) throw new HttpError(404, USER_NOT_FOUND);
     await usr.update({
       balance: (parseFloat(usr.balance) + amount).toFixed(2),
     });

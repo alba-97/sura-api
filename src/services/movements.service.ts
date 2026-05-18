@@ -9,6 +9,13 @@ import {
 import * as movementsRepository from '@/repositories/movements.repository';
 import * as notificationsService from '@/services/notifications.service';
 import type { TransactionType } from '@/models/Transaction';
+import {
+  CANNOT_TRANSFER_TO_SELF,
+  CARD_NOT_FOUND,
+  INSUFFICIENT_FUNDS,
+  INVALID_AMOUNT,
+  USER_WITH_EMAIL_NOT_EXIST,
+} from '@/config/errors';
 
 const movVersionKey = (userId: number) => `sb:mov_v:${userId}`;
 const movKey = (
@@ -56,19 +63,18 @@ export const transfer = async (
   amount: number,
   cardId: number,
 ) => {
-  if (isNaN(amount) || amount <= 0) throw new HttpError(400, 'Invalid amount');
+  if (isNaN(amount) || amount <= 0) throw new HttpError(400, INVALID_AMOUNT);
 
   const recipient = await movementsRepository.findUserByEmail(email);
-  if (!recipient)
-    throw new HttpError(404, 'User with that email does not exist');
+  if (!recipient) throw new HttpError(404, USER_WITH_EMAIL_NOT_EXIST);
   if (recipient.id === userId)
-    throw new HttpError(400, 'Cannot transfer to yourself');
+    throw new HttpError(400, CANNOT_TRANSFER_TO_SELF);
 
   const card = await movementsRepository.findCardById(cardId, userId);
-  if (!card) throw new HttpError(404, 'Card not found');
+  if (!card) throw new HttpError(404, CARD_NOT_FOUND);
 
   const currentBalance = parseFloat(card.balance);
-  if (amount > currentBalance) throw new HttpError(400, 'Insufficient funds');
+  if (amount > currentBalance) throw new HttpError(400, INSUFFICIENT_FUNDS);
 
   const newBalance = (currentBalance - amount).toFixed(2);
   await card.update({ balance: newBalance });
